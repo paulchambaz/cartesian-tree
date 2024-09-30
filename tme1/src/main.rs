@@ -1,6 +1,6 @@
 use std::time::Instant;
 
-use backpack::{bruteforce_treesearch, greedy, greedy_continuous, Backpack};
+use backpack::{bruteforce_treesearch, bruteforce_treesearch2, greedy, greedy_continuous, Backpack};
 use gnuplot::{Figure, PlotOption::{Caption, Color}};
 
 mod backpack;
@@ -28,6 +28,8 @@ pub fn test_example() {
     if let Some(solution) = bruteforce_treesearch(&backpack) {
         solution.print();
     }
+    let solution = bruteforce_treesearch2(&backpack);
+    solution.print();
 }
 
 pub fn measure_performance() {

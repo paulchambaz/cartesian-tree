@@ -171,7 +171,41 @@ pub fn bruteforce_treesearch_runner(backpack: &Backpack, i: usize, pos: Vec<usiz
             None
         }
     }
+}
 
+pub fn bruteforce_treesearch2(backpack: &Backpack) -> Solution {
+    bruteforce_treesearch_runner2(backpack, 0, &vec![], 0)
+}
 
+pub fn bruteforce_treesearch_runner2(backpack: &Backpack, i: usize, pos: &Vec<usize>, weight: u64) -> Solution {
+    let len = backpack.weights.len();
+    if i >= len {
+        let mut values: Vec<f64> = vec![0.0; len];
+        let mut utility = 0.0;
+        for p in pos {
+            let p = *p;
+            values[p] = 1.0;
+            utility += backpack.utilities[p] as f64;
+        }
 
+        if weight > backpack.total_weight {
+            return Solution{utility : 0.0, values : vec![0.0; len]};
+        }
+
+        return Solution{utility, values};
+    }
+
+    let res = bruteforce_treesearch_runner2(backpack, i + 1, &pos, weight);
+    if (weight + backpack.weights[i]) <= backpack.total_weight {
+        let mut pos_clone = pos.clone();
+        pos_clone.push(i);
+        let res_left = bruteforce_treesearch_runner2(backpack, i + 1, &pos_clone, weight + backpack.weights[i]);
+        if res_left.utility > res.utility {
+            res_left
+        } else {
+            res
+        }
+    } else {
+        res
+    }
 }
