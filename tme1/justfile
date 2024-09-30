@@ -2,4 +2,4 @@ run *ARGS:
   cargo run -- {{ARGS}}
 
 build:
-  cargo build
+  cargo build --release
