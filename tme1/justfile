@@ -1,5 +1,5 @@
 run *ARGS:
-  cargo run -- {{ARGS}}
+  @cargo run -q -- {{ARGS}}
 
 build:
-  cargo build --release
+  @cargo build --release

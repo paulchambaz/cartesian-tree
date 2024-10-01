@@ -125,11 +125,16 @@ pub fn greedy_continuous(backpack: &Backpack) -> Solution {
 }
 
 pub fn bruteforce_treesearch(backpack: &Backpack) -> Solution {
-    bruteforce_treesearch_runner(backpack, 0, vec![])
+    bruteforce_treesearch_runner(backpack, 0, vec![], 0)
 }
 
-pub fn bruteforce_treesearch_runner(backpack: &Backpack, i: usize, pos: Vec<usize>) -> Solution {
+pub fn bruteforce_treesearch_runner(backpack: &Backpack, i: usize, pos: Vec<usize>, weight: u64) -> Solution {
     let len = backpack.weights.len();
+
+    if weight > backpack.total_weight {
+        return Solution{utility : 0.0, values : vec![0.0; len]};
+    }
+
     if i >= len {
         let mut values: Vec<f64> = vec![0.0; len];
         let mut utility = 0.0;
@@ -150,8 +155,8 @@ pub fn bruteforce_treesearch_runner(backpack: &Backpack, i: usize, pos: Vec<usiz
     let mut pos_clone = pos.clone();
     pos_clone.push(i);
 
-    let left = bruteforce_treesearch_runner(backpack, i + 1, pos_clone);
-    let right = bruteforce_treesearch_runner(backpack, i + 1, pos);
+    let left = bruteforce_treesearch_runner(backpack, i + 1, pos_clone, weight + backpack.weights[i]);
+    let right = bruteforce_treesearch_runner(backpack, i + 1, pos, weight);
 
     if left.utility > right.utility {
         left
