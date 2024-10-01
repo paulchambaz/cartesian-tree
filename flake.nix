@@ -20,6 +20,7 @@
 
       devPkgs = with pkgs; [
         just
+        gnuplot
       ];
     in {
       devShell = pkgs.mkShell {

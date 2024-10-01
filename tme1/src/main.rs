@@ -25,9 +25,8 @@ pub fn test_example() {
     solution.print();
     let solution = greedy_continuous(&backpack);
     solution.print();
-    if let Some(solution) = bruteforce_treesearch(&backpack) {
-        solution.print();
-    }
+    let solution = bruteforce_treesearch(&backpack);
+    solution.print();
     let solution = bruteforce_treesearch2(&backpack);
     solution.print();
 }

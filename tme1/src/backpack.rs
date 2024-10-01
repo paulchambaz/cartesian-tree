@@ -124,15 +124,11 @@ pub fn greedy_continuous(backpack: &Backpack) -> Solution {
     Solution{utility: total_utility, values: solution}
 }
 
-pub fn bruteforce_treesearch(backpack: &Backpack) -> Option<Solution> {
-    if let Some((weight, solution)) = bruteforce_treesearch_runner(backpack, 0, vec![]) {
-        Some(solution)
-    } else {
-        None
-    }
+pub fn bruteforce_treesearch(backpack: &Backpack) -> Solution {
+    bruteforce_treesearch_runner(backpack, 0, vec![])
 }
 
-pub fn bruteforce_treesearch_runner(backpack: &Backpack, i: usize, pos: Vec<usize>) -> Option<(u32, Solution)> {
+pub fn bruteforce_treesearch_runner(backpack: &Backpack, i: usize, pos: Vec<usize>) -> Solution {
     let len = backpack.weights.len();
     if i >= len {
         let mut values: Vec<f64> = vec![0.0; len];
@@ -145,31 +141,22 @@ pub fn bruteforce_treesearch_runner(backpack: &Backpack, i: usize, pos: Vec<usiz
         }
 
         if weight > backpack.total_weight {
-            return None
+            return Solution{utility : 0.0, values : vec![0.0; len]};
         }
 
-        return Some((0, Solution{utility, values}));
+        return Solution{utility, values};
     }
 
     let mut pos_clone = pos.clone();
     pos_clone.push(i);
 
-    if let Some((weight_left, res_left)) = bruteforce_treesearch_runner(backpack, i + 1, pos_clone) {
-        if let Some((weight_right, res_right)) = bruteforce_treesearch_runner(backpack, i + 1, pos) {
-            if res_left.utility > res_right.utility {
-                Some((weight_left, res_left))
-            } else {
-                Some((weight_right, res_right))
-            }
-        } else {
-            Some((weight_left, res_left))
-        }
+    let left = bruteforce_treesearch_runner(backpack, i + 1, pos_clone);
+    let right = bruteforce_treesearch_runner(backpack, i + 1, pos);
+
+    if left.utility > right.utility {
+        left
     } else {
-        if let Some((weight_right, res_right)) = bruteforce_treesearch_runner(backpack, i + 1, pos) {
-            Some((weight_right, res_right))
-        } else {
-            None
-        }
+        right
     }
 }
 
