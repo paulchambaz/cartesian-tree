@@ -8,7 +8,7 @@ pub struct Backpack {
 }
 
 pub struct Solution {
-    pub utility: f64,
+    pub utilities: f64,
     pub values: Vec<f64>,
 }
 
@@ -27,19 +27,19 @@ impl Backpack {
 
 impl Solution {
     pub fn print(&self) {
-        println!("Solution: {:?}, Utility: {}", self.values, self.utility);
+        println!("Solution: {:?}, Utility: {}", self.values, self.utilities);
     }
 }
 
 
 pub fn greedy(backpack: &Backpack) -> Solution {
-    let mut ratios: Vec<(usize, f64)> = Vec::new();
     let len = backpack.weights.len();
 
-    for i in 0..len {
-        let ratio = backpack.utilities[i] as f64 / backpack.weights[i] as f64;
-        ratios.push((i, ratio));
-    }
+    let mut ratios: Vec<_> = backpack.weights.iter()
+        .zip(backpack.utilities.iter())
+        .enumerate()
+        .map(|(i, (&weight, &utility))| (i, utility as f64 / weight as f64))
+        .collect();
 
 
     ratios.sort_by(|(_, ratio_i), (_, ratio_j)| {
@@ -51,41 +51,38 @@ pub fn greedy(backpack: &Backpack) -> Solution {
     });
 
     let mut remaining_weight = backpack.total_weight;
-    let mut total_utility = 0.0;
-    let mut solution = vec![0.0; len];
+    let mut utilities = 0.0;
+    let mut values = vec![0.0; len];
 
     for i in 0..len {
         let (index, _) = ratios[i];
         let weight = backpack.weights[index];
-        let utility = backpack.utilities[index];
 
         if weight > remaining_weight {
             continue;
         }
 
-
         remaining_weight -= weight;
-        total_utility += utility as f64;
-        solution[index] = 1.0;
+        utilities += backpack.utilities[index] as f64;
+        values[index] = 1.0;
 
         if remaining_weight <= 0 {
             break;
         }
     }
 
-    Solution{utility: total_utility, values: solution}
+    Solution{utilities, values}
 }
 
 
 pub fn greedy_continuous(backpack: &Backpack) -> Solution {
-    let mut ratios: Vec<(usize, f64)> = Vec::new();
     let len = backpack.weights.len();
 
-    for i in 0..len {
-        let ratio = backpack.utilities[i] as f64 / backpack.weights[i] as f64;
-        ratios.push((i, ratio));
-    }
-
+    let mut ratios: Vec<_> = backpack.weights.iter()
+        .zip(backpack.utilities.iter())
+        .enumerate()
+        .map(|(i, (&weight, &utility))| (i, utility as f64 / weight as f64))
+        .collect();
 
     ratios.sort_by(|(_, ratio_i), (_, ratio_j)| {
         if let Some(ordering) = ratio_i.partial_cmp(&ratio_j) {
@@ -103,7 +100,6 @@ pub fn greedy_continuous(backpack: &Backpack) -> Solution {
         let (index, _) = ratios[i];
         let weight = backpack.weights[index];
         let utility = backpack.utilities[index];
-
 
         if weight > remaining_weight {
             let ratio = (remaining_weight as f64) / (weight as f64);
@@ -121,7 +117,7 @@ pub fn greedy_continuous(backpack: &Backpack) -> Solution {
         }
     }
 
-    Solution{utility: total_utility, values: solution}
+    Solution{utilities: total_utility, values: solution}
 }
 
 pub fn bruteforce_treesearch(backpack: &Backpack) -> Solution {
@@ -132,7 +128,7 @@ pub fn bruteforce_treesearch_runner(backpack: &Backpack, i: usize, pos: Vec<usiz
     let len = backpack.weights.len();
 
     if weight > backpack.total_weight {
-        return Solution{utility : 0.0, values : vec![0.0; len]};
+        return Solution{utilities : 0.0, values : vec![0.0; len]};
     }
 
     if i >= len {
@@ -146,10 +142,10 @@ pub fn bruteforce_treesearch_runner(backpack: &Backpack, i: usize, pos: Vec<usiz
         }
 
         if weight > backpack.total_weight {
-            return Solution{utility : 0.0, values : vec![0.0; len]};
+            return Solution{utilities : 0.0, values : vec![0.0; len]};
         }
 
-        return Solution{utility, values};
+        return Solution{utilities: utility, values};
     }
 
     let mut pos_clone = pos.clone();
@@ -158,7 +154,7 @@ pub fn bruteforce_treesearch_runner(backpack: &Backpack, i: usize, pos: Vec<usiz
     let left = bruteforce_treesearch_runner(backpack, i + 1, pos_clone, weight + backpack.weights[i]);
     let right = bruteforce_treesearch_runner(backpack, i + 1, pos, weight);
 
-    if left.utility > right.utility {
+    if left.utilities > right.utilities {
         left
     } else {
         right
@@ -181,10 +177,10 @@ pub fn bruteforce_treesearch_runner2(backpack: &Backpack, i: usize, pos: &Vec<us
         }
 
         if weight > backpack.total_weight {
-            return Solution{utility : 0.0, values : vec![0.0; len]};
+            return Solution{utilities : 0.0, values : vec![0.0; len]};
         }
 
-        return Solution{utility, values};
+        return Solution{utilities: utility, values};
     }
 
     let res = bruteforce_treesearch_runner2(backpack, i + 1, &pos, weight);
@@ -192,7 +188,7 @@ pub fn bruteforce_treesearch_runner2(backpack: &Backpack, i: usize, pos: &Vec<us
         let mut pos_clone = pos.clone();
         pos_clone.push(i);
         let res_left = bruteforce_treesearch_runner2(backpack, i + 1, &pos_clone, weight + backpack.weights[i]);
-        if res_left.utility > res.utility {
+        if res_left.utilities > res.utilities {
             res_left
         } else {
             res

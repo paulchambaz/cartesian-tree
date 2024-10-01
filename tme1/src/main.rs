@@ -10,6 +10,7 @@ fn main() {
     // p18 - sujet tme
 
     test_example();
+    measure_performance();
 
 
 
@@ -34,7 +35,7 @@ pub fn test_example() {
 pub fn measure_performance() {
     let sec_max = 0.1;
     let mut tmax = 0;
-    for r in vec![100, 1_000, 10_000, 100_000, 1_000_000, 10_000_000] {
+    for r in vec![100, 1_000, 10_000, 100_000, 1_000_000, 10_000_000, 100_000_000] {
         let backpack = Backpack::gen_random(r);
         let start = Instant::now();
         let _ = greedy(&backpack);
