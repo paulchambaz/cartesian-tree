@@ -11,8 +11,19 @@ fn main() {
 
     // test_example();
     // measure_performance(greedy);
-
-    measure_performance(branch_and_bound);
+    
+    // println!("Branch and bound on random array");
+    // measure_performance(branch_and_bound, Backpack::gen_random);
+    // println!("Branch and bound on correlated array");
+    // measure_performance(branch_and_bound, Backpack::gen_random_correlated);
+    // println!("Branch and bound on weight sorted random array");
+    // measure_performance(branch_and_bound, Backpack::gen_random_weight_sorted);
+    println!("Branch and bound on weight sorted correlated array");
+    measure_performance(branch_and_bound, Backpack::gen_random_weight_correlated_sorted);
+    println!("Branch and bound on utility sorted random array");
+    measure_performance(branch_and_bound, Backpack::gen_random_weight_sorted);
+    println!("Branch and bound on utility sorted correlated array");
+    measure_performance(branch_and_bound, Backpack::gen_random_weight_correlated_sorted);
 
     // for i in 1..100 {
     //     let backpack = Backpack::gen_random(24);
@@ -63,12 +74,12 @@ pub fn measure_performance_greedy() {
     }
 }
 
-pub fn measure_performance(function: fn(&Backpack) -> Solution) {
-    let sec_max = 0.1;
+pub fn measure_performance(function: fn(&Backpack) -> Solution, gen: fn(usize) -> Backpack) {
+    let sec_max = 1.0;
     let mut tmax = 0;
-    for r in vec![100, 1_000, 10_000, 100_000, 1_000_000, 10_000_000, 100_000_000] {
+    for r in vec![100, 200, 300, 400, 500, 600, 700, 800] {
         println!("{}", r);
-        let backpack = Backpack::gen_random(r);
+        let backpack = gen(r);
         let start = Instant::now();
         let _ = function(&backpack);
         let duration = start.elapsed();
@@ -82,25 +93,28 @@ pub fn measure_performance(function: fn(&Backpack) -> Solution) {
     let mut x = Vec::new();
     let mut y = Vec::new();
 
-    for i in 1..=10 {
-        let t = i * tmax / 10;
+    for i in 1..=8 {
+        let t = i * tmax / 8;
+        println!("{}", t);
         let mut average_duration = 0.0;
         let samples = 10;
         for _ in 1..samples {
-            let backpack = Backpack::gen_random(t);
+            let backpack = gen(t);
             let start = Instant::now();
             let _ = function(&backpack);
             let duration = start.elapsed().as_secs_f32();
             average_duration += duration;
         }
 
+        let elapsed = average_duration / samples as f32;
+        println!("{}s", elapsed);
         x.push(t);
-        y.push(average_duration / samples as f32);
+        y.push(elapsed);
     }
 
     let mut fg = Figure::new();
     fg.axes2d()
-        .lines(&x, &y, &[Caption("Greedy"), Color("black")]);
+        .lines(&x, &y, &[Caption("Branch and bound"), Color("black")]);
     let _ = fg.show();
 
 }

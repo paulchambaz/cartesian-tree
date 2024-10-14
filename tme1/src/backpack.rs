@@ -1,3 +1,5 @@
+use std::cmp::{max, Ordering};
+
 use rand::Rng;
 
 
@@ -24,6 +26,116 @@ impl Backpack {
         let total_weight: u64 = weights.iter().sum::<u64>() / 2;
 
         Backpack{total_weight, weights, utilities}
+    }
+
+    pub fn gen_random_correlated(r: usize) -> Backpack {
+        let mut rng = rand::thread_rng();
+        let weights: Vec<u64> = (0..r).map(|_| rng.gen_range(1..r) as u64).collect();
+        let utilities: Vec<u64> = weights.iter().map(|weight| {
+            let min = max(1, (*weight as f64 - r as f64 / 10.0) as u64);
+            let max = max(1, (*weight as f64 + r as f64 / 10.0) as u64);
+            rng.gen_range(min..max)
+        }).collect();
+
+        let total_weight: u64 = weights.iter().sum::<u64>() / 2;
+
+        Backpack{total_weight, weights, utilities}
+    }
+
+    pub fn gen_random_weight_sorted(r: usize) -> Backpack {
+        let backpack = Self::gen_random(r);
+
+        let mut pair: Vec<_> = backpack.weights.iter()
+            .zip(backpack.utilities.iter())
+            .enumerate()
+            .map(|(i, (&weight, &utility))| (i, weight, utility, utility as f64 / weight as f64))
+            .collect();
+
+        pair.sort_by(|(_, wi, _, _), (_, wj, _, _)| {
+            if wi > wj {
+                Ordering::Less
+            } else {
+                Ordering::Greater
+            }
+        });
+
+        Backpack{
+            total_weight: backpack.total_weight,
+            weights: pair.iter().map(|(_, wi, _, _)| *wi).collect(),
+            utilities: pair.iter().map(|(_, _, ui, _)| *ui).collect(),
+        }
+    }
+
+    pub fn gen_random_weight_correlated_sorted(r: usize) -> Backpack {
+        let backpack = Self::gen_random_correlated(r);
+
+        let mut pair: Vec<_> = backpack.weights.iter()
+            .zip(backpack.utilities.iter())
+            .enumerate()
+            .map(|(i, (&weight, &utility))| (i, weight, utility, utility as f64 / weight as f64))
+            .collect();
+
+        pair.sort_by(|(_, wi, _, _), (_, wj, _, _)| {
+            if wi > wj {
+                Ordering::Less
+            } else {
+                Ordering::Greater
+            }
+        });
+
+        Backpack{
+            total_weight: backpack.total_weight,
+            weights: pair.iter().map(|(_, wi, _, _)| *wi).collect(),
+            utilities: pair.iter().map(|(_, _, ui, _)| *ui).collect(),
+        }
+    }
+
+    pub fn gen_random_ratio_sorted(r: usize) -> Backpack {
+        let backpack = Self::gen_random(r);
+
+        let mut pair: Vec<_> = backpack.weights.iter()
+            .zip(backpack.utilities.iter())
+            .enumerate()
+            .map(|(i, (&weight, &utility))| (i, weight, utility, utility as f64 / weight as f64))
+            .collect();
+
+        pair.sort_by(|(_, _, _, ri), (_, _, _, rj)| {
+            if ri > rj {
+                Ordering::Less
+            } else {
+                Ordering::Greater
+            }
+        });
+
+        Backpack{
+            total_weight: backpack.total_weight,
+            weights: pair.iter().map(|(_, wi, _, _)| *wi).collect(),
+            utilities: pair.iter().map(|(_, _, ui, _)| *ui).collect(),
+        }
+    }
+
+    pub fn gen_random_ratio_correlated_sorted(r: usize) -> Backpack {
+        let backpack = Self::gen_random_correlated(r);
+
+        let mut pair: Vec<_> = backpack.weights.iter()
+            .zip(backpack.utilities.iter())
+            .enumerate()
+            .map(|(i, (&weight, &utility))| (i, weight, utility, utility as f64 / weight as f64))
+            .collect();
+
+        pair.sort_by(|(_, _, _, ri), (_, _, _, rj)| {
+            if ri > rj {
+                Ordering::Less
+            } else {
+                Ordering::Greater
+            }
+        });
+
+        Backpack{
+            total_weight: backpack.total_weight,
+            weights: pair.iter().map(|(_, wi, _, _)| *wi).collect(),
+            utilities: pair.iter().map(|(_, _, ui, _)| *ui).collect(),
+        }
     }
 }
 
