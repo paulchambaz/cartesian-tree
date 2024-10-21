@@ -7,7 +7,7 @@ OBJ_DIR = $(TARGET_DIR)/obj
 BIN_DIR = $(TARGET_DIR)
 SOURCES = $(wildcard $(SRC_DIR)/*.cpp)
 OBJECTS = $(SOURCES:$(SRC_DIR)/%.cpp=$(OBJ_DIR)/%.o)
-TARGET = $(BIN_DIR)/tme5
+TARGET = $(BIN_DIR)/bin
 CXXFLAGS += -I$(INCLUDE_DIR)
 
 # Debug build settings
@@ -24,7 +24,7 @@ endif
 OBJ_DIR = $(TARGET_DIR)/obj
 BIN_DIR = $(TARGET_DIR)
 OBJECTS = $(SOURCES:$(SRC_DIR)/%.cpp=$(OBJ_DIR)/%.o)
-TARGET = $(BIN_DIR)/tme5
+TARGET = $(BIN_DIR)/bin
 
 # Dependency files
 DEPS = $(OBJECTS:.o=.d)
