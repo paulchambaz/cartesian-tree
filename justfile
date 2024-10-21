@@ -12,4 +12,3 @@ valgrind:
 
 debug:
   make debug
-  gdb ./target/debug/bin

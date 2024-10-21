@@ -1,7 +1,7 @@
 [
   {
     "arguments": [
-      "/run/current-system/sw/bin/g++",
+      "/nix/store/vh9fsdhgxcnab2qk7vdp2palkkn6j3cp-gcc-wrapper-13.3.0/bin/g++",
       "-std=c++17",
       "-Wall",
       "-Wextra",
@@ -20,7 +20,8 @@
       "-Wsuggest-override",
       "-Wdouble-promotion",
       "-Iinclude",
-      "-O3",
+      "-O2",
+      "-D_FORTIFY_SOURCE=2",
       "-c",
       "-o",
       "target/release/obj/CartesianTree.o",
@@ -32,7 +33,7 @@
   },
   {
     "arguments": [
-      "/run/current-system/sw/bin/g++",
+      "/nix/store/vh9fsdhgxcnab2qk7vdp2palkkn6j3cp-gcc-wrapper-13.3.0/bin/g++",
       "-std=c++17",
       "-Wall",
       "-Wextra",
@@ -51,7 +52,8 @@
       "-Wsuggest-override",
       "-Wdouble-promotion",
       "-Iinclude",
-      "-O3",
+      "-O2",
+      "-D_FORTIFY_SOURCE=2",
       "-c",
       "-o",
       "target/release/obj/main.o",
@@ -63,7 +65,7 @@
   },
   {
     "arguments": [
-      "/run/current-system/sw/bin/g++",
+      "/nix/store/vh9fsdhgxcnab2qk7vdp2palkkn6j3cp-gcc-wrapper-13.3.0/bin/g++",
       "-std=c++17",
       "-Wall",
       "-Wextra",
@@ -82,7 +84,8 @@
       "-Wsuggest-override",
       "-Wdouble-promotion",
       "-Iinclude",
-      "-O3",
+      "-O2",
+      "-D_FORTIFY_SOURCE=2",
       "-c",
       "-o",
       "target/release/obj/Node.o",

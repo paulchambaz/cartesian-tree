@@ -15,27 +15,64 @@ bool CartesianTree::insert(std::string key, unsigned int priority) {
   }
 
   std::vector<Node *> stack;
-  stack.push_back(root);
+  Node *current = root;
 
-  while (stack.at(stack.size() - 1) != nullptr) {
-    if (key < stack.at(stack.size() - 1)->key) {
-      stack.push_back(stack.at(stack.size() - 1)->left);
-    } else if (key > stack.at(stack.size() - 1)->key) {
-      stack.push_back(stack.at(stack.size() - 1)->right);
-    } else {
-      std::cout << "Error, key of inserted node matches already present key in "
-                   "the tree"
-                << std::endl;
+  while (current != nullptr) {
+    if (key == current->key) {
+      delete node;
       return false;
+    }
+
+    stack.push_back(current);
+
+    if (key < current->key) {
+      if (current->left == nullptr) {
+        current->left = node;
+        break;
+      }
+      current = current->left;
+    } else {
+      if (current->right == nullptr) {
+        current->right = node;
+        break;
+      }
+      current = current->right;
     }
   }
 
-  for (auto element : stack) {
-    std::cout << element->key << element->priority << std::endl;
-  }
+  stack.push_back(node);
 
-  // we are at the correct leaf
-  std::cout << node->key << node->priority << std::endl;
+  while (stack.size() >= 2) {
+    Node *child = stack.back();
+    stack.pop_back();
+
+    Node *parent = stack.back();
+
+    if (parent->priority <= child->priority) {
+      break;
+    }
+
+    if (parent->left == child) {
+      parent->left = child->right;
+      child->right = parent;
+    } else {
+      parent->right = child->left;
+      child->left = parent;
+    }
+
+    if (stack.size() > 1) {
+      Node *grandparent = stack.at(stack.size() - 2);
+      if (grandparent->left == parent) {
+        grandparent->left = child;
+      } else {
+        grandparent->right = child;
+      }
+    } else {
+      root = child;
+    }
+
+    stack.back() = child;
+  }
 
   return true;
 }
