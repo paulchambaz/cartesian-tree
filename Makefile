@@ -3,60 +3,48 @@ CXXFLAGS = -std=c++17 -Wall -Wextra -Wpedantic -Werror -Wconversion -Wsign-conve
 SRC_DIR = src
 INCLUDE_DIR = include
 TARGET_DIR = target
-OBJ_DIR = $(TARGET_DIR)/obj
-BIN_DIR = $(TARGET_DIR)
 SOURCES = $(wildcard $(SRC_DIR)/*.cpp)
-OBJECTS = $(SOURCES:$(SRC_DIR)/%.cpp=$(OBJ_DIR)/%.o)
-TARGET = $(BIN_DIR)/bin
+
+# Common flags
 CXXFLAGS += -I$(INCLUDE_DIR)
 
-# Debug build settings
-DEBUG ?= 0
-ifeq ($(DEBUG), 1)
-    CXXFLAGS += -g -O
-    TARGET_DIR := $(TARGET_DIR)/debug
-else
-    CXXFLAGS += -O3
-    TARGET_DIR := $(TARGET_DIR)/release
-endif
+# Release settings
+RELEASE_FLAGS = -O2 -D_FORTIFY_SOURCE=2
+RELEASE_DIR = $(TARGET_DIR)/release
+RELEASE_OBJ_DIR = $(RELEASE_DIR)/obj
+RELEASE_OBJECTS = $(SOURCES:$(SRC_DIR)/%.cpp=$(RELEASE_OBJ_DIR)/%.o)
+RELEASE_TARGET = $(RELEASE_DIR)/bin
 
-# Update object and binary directories
-OBJ_DIR = $(TARGET_DIR)/obj
-BIN_DIR = $(TARGET_DIR)
-OBJECTS = $(SOURCES:$(SRC_DIR)/%.cpp=$(OBJ_DIR)/%.o)
-TARGET = $(BIN_DIR)/bin
+# Debug settings
+DEBUG_FLAGS = -g -O
+DEBUG_DIR = $(TARGET_DIR)/debug
+DEBUG_OBJ_DIR = $(DEBUG_DIR)/obj
+DEBUG_OBJECTS = $(SOURCES:$(SRC_DIR)/%.cpp=$(DEBUG_OBJ_DIR)/%.o)
+DEBUG_TARGET = $(DEBUG_DIR)/bin
 
-# Dependency files
-DEPS = $(OBJECTS:.o=.d)
+.PHONY: all clean release debug
 
-.PHONY: all clean
+all: release
 
-all: $(TARGET)
-	@:
+release: $(RELEASE_TARGET)
 
-$(TARGET): $(OBJECTS)
-	@mkdir -p $(BIN_DIR)
-	@$(CXX) $(CXXFLAGS) $^ -o $@
-	@echo "Build complete: $(TARGET)"
+debug: $(DEBUG_TARGET)
 
-# Rule to generate a dep file by using the C preprocessor
-# (see '-MM' option documentation)
-$(OBJ_DIR)/%.d: $(SRC_DIR)/%.cpp
-	@mkdir -p $(OBJ_DIR)
-	@$(CXX) $(CXXFLAGS) -MM -MT '$(OBJ_DIR)/$*.o $@' $< > $@
+$(RELEASE_TARGET): $(RELEASE_OBJECTS)
+	@mkdir -p $(dir $@)
+	@$(CXX) $(CXXFLAGS) $(RELEASE_FLAGS) $^ -o $@
 
-# Include the dependency files
--include $(DEPS)
+$(DEBUG_TARGET): $(DEBUG_OBJECTS)
+	@mkdir -p $(dir $@)
+	@$(CXX) $(CXXFLAGS) $(DEBUG_FLAGS) $^ -o $@
 
-$(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp
-	@mkdir -p $(OBJ_DIR)
-	@$(CXX) $(CXXFLAGS) -c $< -o $@
+$(RELEASE_OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp
+	@mkdir -p $(dir $@)
+	@$(CXX) $(CXXFLAGS) $(RELEASE_FLAGS) -c $< -o $@
+
+$(DEBUG_OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp
+	@mkdir -p $(dir $@)
+	@$(CXX) $(CXXFLAGS) $(DEBUG_FLAGS) -c $< -o $@
 
 clean:
 	@rm -rf $(TARGET_DIR)
-	@echo "Cleaned build artifacts"
-
-# Debugging target
-.PHONY: debug
-debug: DEBUG = 1
-debug: all

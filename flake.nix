@@ -30,6 +30,7 @@
         bear
       ];
     in {
+      # TODO: must rewrite to have proper package
       packages.default = pkgs.stdenv.mkDerivation {
         pname = name;
         version = "1.0.0";

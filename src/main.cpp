@@ -1,7 +1,87 @@
+#include "CartesianTree.h"
+#include "Node.h"
 #include <iostream>
+#include <vector>
+
+using namespace complex;
+using namespace std;
+
+void exercice_1() {
+  Node a5("A", 5, nullptr, nullptr);
+  Node c8("C", 8, nullptr, nullptr);
+  Node b3("B", 3, &a5, &c8);
+
+  Node g9("G", 9, nullptr, nullptr);
+  Node f7("F", 7, nullptr, &g9);
+  Node e6("E", 6, nullptr, &f7);
+
+  Node d2("D", 2, &b3, &e6);
+
+  Node j12("J", 12, nullptr, nullptr);
+  Node i10("I", 10, nullptr, &j12);
+
+  Node h1("H", 1, &d2, &i10);
+
+  CartesianTree tree(&h1);
+}
+
+void exercice_2() {
+
+  Node a5("A", 5, nullptr, nullptr);
+  Node c8("C", 8, nullptr, nullptr);
+  Node b3("B", 3, &a5, &c8);
+
+  Node g9("G", 9, nullptr, nullptr);
+  Node f7("F", 7, nullptr, &g9);
+  Node e6("E", 6, nullptr, &f7);
+
+  Node d2("D", 2, &b3, &e6);
+
+  Node j12("J", 12, nullptr, nullptr);
+  Node i10("I", 10, nullptr, &j12);
+
+  Node h1("H", 1, &d2, &i10);
+
+  CartesianTree tree(&h1);
+
+  Node *res = tree.find("E");
+  cout << res->key << res->priority << endl;
+}
+
+void exercice_3() {
+  CartesianTree tree_1;
+  vector<pair<string, unsigned int>> list_1 = {
+      {"A", 5}, {"B", 3}, {"C", 8}, {"D", 2},  {"E", 6},
+      {"F", 7}, {"G", 9}, {"H", 1}, {"I", 10}, {"J", 12},
+  };
+
+  for (auto element : list_1) {
+    tree_1.insert(element.first, element.second);
+  }
+  //
+  // CartesianTree tree_2;
+  // vector<pair<string, unsigned int>> list_2 = {
+  //     {"H", 1}, {"G", 9}, {"A", 5},  {"B", 3},  {"D", 2},
+  //     {"F", 7}, {"C", 8}, {"J", 12}, {"I", 10}, {"E", 6},
+  // };
+  //
+  // for (auto element : list_2) {
+  //   tree_2.insert(element.first, element.second);
+  // }
+  //
+  // CartesianTree tree_3;
+  // vector<pair<string, unsigned int>> list_3 = {
+  //     {"E", 6}, {"H", 1}, {"B", 3},  {"D", 2}, {"C", 8},
+  //     {"F", 7}, {"G", 9}, {"J", 12}, {"A", 5}, {"I", 10},
+  // };
+  //
+  // for (auto element : list_3) {
+  //   tree_3.insert(element.first, element.second);
+  // }
+}
 
 int main() {
   using namespace std;
 
-  cout << "Hello, world!" << endl;
+  exercice_1();
 }
