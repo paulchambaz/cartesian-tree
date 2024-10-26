@@ -12,7 +12,7 @@
       stack(dir: ltr,
         [ Complexité, algorithmes randomisés et approchés ],
         h(1fr),
-        [ Paul Chambaz & Damien Vergnaud ],
+        [ Damien Assire & Paul Chambaz ],
       ),
       v(.1cm),
       line(length: 100%, stroke: .4pt)
