@@ -23,9 +23,9 @@
     #stack(dir: ltr,
         [ Sorbonne Université ],
         h(1fr),
-        [#counter(page).display(
-          "1",
-        )],
+        [ #context {
+            counter(page).display("1")
+        } ],
         h(1fr),
         [ Master #smallcaps[Ai2d] & #smallcaps[Cca] M1 -- 2024 ],
     )
