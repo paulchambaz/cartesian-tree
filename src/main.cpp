@@ -95,8 +95,4 @@ void exercice_3() {
   cout << endl;
 }
 
-int main() {
-  using namespace std;
-
-  exercice_3();
-}
+int main() { exercice_3(); }
