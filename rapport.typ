@@ -1,7 +1,7 @@
 #import "@preview/cetz:0.3.0"
 
-// #set text(size: 11pt, font: "New Computer Modern")
-#set text(size: 11pt)
+#set text(size: 11pt, font: "New Computer Modern")
+// #set text(size: 11pt)
 
 #set page(
   numbering: "1",
@@ -277,10 +277,20 @@ _Voir la fonction `exercice_3` pour un la construction de l'arbre de la figure 1
 == Exercice 4
 
 === a
-#lorem(100)
+On propose l'algorithme pour supprimer des nœuds dans un arbre cartésien. On commence par faire des rotations entre le nœud que l'on veut faire et son fils de plus petite priorité. On fait des itérations de ces rotations jusqu'a ce que le nœud soit une feuille. On supprime alors le nœud.
+
+Si le nœud est déjà à une feuille, alors si on le supprime, on ne pertube pas ces fils (il n'en a pas), on ne perturbe pas l'ordre des clés, donc on conserve bien la propriété d'arbre binaire et on ne perturbe pas l'ordre des priorités, donc on conserve bien la propriété de tas. On peut donc supprimer les feuilles dans un arbre cartésien.
+
+Dans le cas où le nœud n'est initialement pas une feuille, on peut établir que puisqu'on inverse un nœud avec un de ces nœuds fils, on arrivera bien à partir d'une certaine profondeur à un nœud qui n'a plus de fils. D'où l'algorithme amène bien le nœud à une feuille. Lorsque l'on fait l'inversion entre un nœud et son fils de priorité minimale, on conserve bien un arbre binaire pour tous les noeuds sauf pour le nœud supprimé. On va noter $z_i$ avec deux fils gauche et droit $z_j$ et $z_k$. On va s'interesser à l'inversion de $z_i$ et $z_j$ sans perte de généralité. Comme l'arbre est initialement cartésien en tous points sauf en $z_i$, on a bien $z_j < z_k$. Donc lorsque l'on place $z_j$ comme ancêtre de $z_k$, on est bien $z_k$ la clé de l'arbre droit de $z_j$ et cette clé est bien supérieure ($z_k > z_j$). Donc on conserve bien la propriété d'arbre binaire. De plus, comme on sélectionne le $min{p(z_j), p(z_k)}$ par construction, donc ici, $p(z_j) < p(z_k)$. $z_j$ devient alors parent de $z_k$ et a bien une priorité inférieure. On conserve donc bien la piorité de tas.
+
+On a bien établi que si on a un arbre cartésien en tout sommet sauf $z$, alors en faisant l'inversion, on obtient bien un nouvel arbre cartésien en tout somme sauf $z$. Il ne reste plus qu'a établir qu'on peut supprimer sans poser de soucis $z$ lorsque c'est une feuille. Cela est du au fait que l'arbre est cartésien en tout sommet sauf $z$ et que on a pas de fils gauche ou fils droit qui pourrait perturber la propriété d'arbre en retirant le nombre d'arête (tout arbre a $n-1$ arête).
+
+Suite a la suppression du sommet qui rendait l'arbre non cartésien, l'arbre redevient alors un arbre cartésien. Ceci explique ce pourquoi ce procédé de suppression fonctionne.
+
+// TODO: introduire la notation p avant ce point.
 
 === b
-#lorem(100)
+On a au plus $k$ inversions a faire. Chaque inversion est en temps constant et la suppression finale d'une feuille est aussi en temps constant. D'où la complexité de l'opération de suppresion est en temps $O(k)$.
 
 === c
 _#lorem(20)_
@@ -289,6 +299,7 @@ _#lorem(20)_
 _#lorem(20)_
 
 == Exercice 5
+
 
 === a
 _#lorem(20)_
@@ -300,7 +311,15 @@ _#lorem(20)_
 #lorem(100)
 
 === b
-#lorem(100)
+($==>$) On sait que $X_(i k) = 1$, c'est à dire, par définition, que $x_i$ est un ancêtre propre de $x_k$. On cherche à prouver que $x_i$ a alors la plus petite priorité dans $X(i,k)$. Supposons qu'il ne l'est pas, alors il existe $x_j$ avec, sans perte de généraité, $i < j < k$ de plus petite priorité $p(x_j)$ (on note $p(s)$ la priorité du noeud $s$).
+
+Par la propriété du tas dans les arbres cartésien, comme $x_i$ est un ancêtre de $x_k$, on sait que $p(x_i) < p(x_k)$. Comme $x_j$ est le noeud de plus petite priorité, alors il est la racine de l'arbre induit par la construction de l'arbre cartésien.
+De plus, on a $i < j$, donc la clé de $x_i < x_j$, donc par propriété de l'arbre binaire, $x_i$ est dans le fils gauche de $x_j$. Par un raisonnement symmétrique, $x_k$ est dans le fils droit de $x_j$.
+On obtient donc que $x_i$ est un ancêtre de $x_k$ et que $x_i$ et $x_k$ sont dans deux sous-arbres différents, ce qui est une _contradiction_.
+
+On a donc bien que $x_i$ est le nœud qui a la plus petite priorité dans $X(i,k)$.
+
+($<==$) On sait que $x_i$ est le nœud qui a la plus petite priorité dans $X(i,k)$. Alors par construction de l'arbre cartésien, par prioriété du tas, il en sera la racine. Il sera donc l'ancêtre de tous les nœud de l'arbre, en particulier de $x_k$. On aura donc bien, par définition, $X_(i k) = 1$.
 
 === c
 #lorem(100)

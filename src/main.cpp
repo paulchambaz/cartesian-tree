@@ -95,4 +95,32 @@ void exercice_3() {
   cout << endl;
 }
 
-int main() { exercice_3(); }
+void exercice_4() {
+  CartesianTree tree;
+  vector<pair<string, unsigned int>> list = {
+      {"A", 5}, {"B", 3}, {"C", 8}, {"D", 2},  {"E", 6},
+      {"F", 7}, {"G", 9}, {"H", 1}, {"I", 10}, {"J", 12},
+  };
+
+  for (auto &element : list) {
+    tree.insert(element.first, element.second);
+  }
+
+  for (auto element : tree) {
+    cout << element << endl;
+  }
+  cout << endl;
+
+  vector<string> to_remove = {"A", "J", "H"};
+  for (auto &element : to_remove) {
+    cout << "Removing: " << element << endl;
+    tree.remove(element);
+
+    for (auto element : tree) {
+      cout << element << endl;
+    }
+    cout << endl;
+  }
+}
+
+int main() { exercice_4(); }

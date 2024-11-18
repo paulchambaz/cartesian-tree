@@ -44,12 +44,17 @@ public:
 
   bool insert(std::string key, unsigned int priority);
 
+  bool remove(std::string key);
+
   Node *find(std::string key);
 
   bool is_empty() { return root == nullptr; }
 
   iterator begin() const { return iterator(root); }
   iterator end() const { return iterator(); }
+
+  // TODO: ecrire un operateur == qui compare qu'on a bien les memes noeuds aux
+  // memes endroits
 
   ~CartesianTree();
 };
