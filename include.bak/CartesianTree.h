@@ -6,6 +6,12 @@
 namespace complex {
 
 class CartesianTree {
+  Node *removeRoot(Node *root);
+  Node *leftRotateRoot(Node *root);
+  Node *rightRotateRoot(Node *root);
+  void leftRotate(Node *parent, Node *root);
+  void rightRotate(Node *parent, Node *root);
+
 public:
   Node *root;
 

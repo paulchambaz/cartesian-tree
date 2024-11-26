@@ -1,7 +1,7 @@
 run: compile
   ./target/release/bin
 
-compile:
+compile: clean
   make
 
 clean:
