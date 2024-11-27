@@ -1,3 +1,5 @@
+#include "BinaryHeap.hpp"
+#include "BinarySearchTree.hpp"
 #include "CartesianTree.hpp"
 #include "performance.h"
 #include <cassert>
@@ -276,11 +278,128 @@ void exercise_4() {
   cout << "All remove operation tests passed!" << endl;
 }
 
+void test_bst() {
+  cout << "\nTesting Binary Search Tree\n" << endl;
+  BinarySearchTree<int> bst;
+
+  // Test 1: Insertion and Find
+  cout << "Test 1: Insertion and Find" << endl;
+  bst.insert(5);
+  bst.insert(3);
+  bst.insert(7);
+  bst.insert(1);
+  bst.insert(9);
+
+  assert(bst.find(5) && "Should find 5");
+  assert(bst.find(3) && "Should find 3");
+  assert(bst.find(7) && "Should find 7");
+  assert(bst.find(1) && "Should find 1");
+  assert(bst.find(9) && "Should find 9");
+  assert(!bst.find(4) && "Should not find 4");
+  cout << "Insertion and find tests passed!" << endl;
+
+  // Test 2: Duplicate Insertion
+  cout << "\nTest 2: Duplicate Insertion" << endl;
+  bst.insert(5); // Duplicate insertion
+  assert(bst.find(5) && "Should still find 5");
+  cout << "Duplicate insertion test passed!" << endl;
+
+  // Test 3: Removal
+  cout << "\nTest 3: Removal" << endl;
+  // Test removing leaf node
+  bst.remove(1);
+  assert(!bst.find(1) && "Should not find 1 after removal");
+
+  // Test removing node with one child
+  bst.insert(8);
+  bst.remove(9);
+  assert(!bst.find(9) && "Should not find 9 after removal");
+  assert(bst.find(8) && "Should still find 8");
+
+  // Test removing node with two children
+  bst.remove(7);
+  assert(!bst.find(7) && "Should not find 7 after removal");
+  assert(bst.find(8) && "Should still find 8");
+
+  cout << "Removal tests passed!" << endl;
+
+  // Test 4: Removing root
+  cout << "\nTest 4: Removing Root" << endl;
+  bst.remove(5);
+  assert(!bst.find(5) && "Should not find 5 after removal");
+  assert(bst.find(3) && "Should still find 3");
+  assert(bst.find(8) && "Should still find 8");
+  cout << "Root removal test passed!" << endl;
+}
+
+void test_binary_heap() {
+  cout << "\nTesting Binary Heap\n" << endl;
+  BinaryHeap<int> heap;
+
+  // Test 1: Push and Top
+  cout << "Test 1: Push and Top" << endl;
+  heap.push(5);
+  assert(heap.top() == 5 && "Top should be 5");
+  heap.push(3);
+  assert(heap.top() == 3 && "Top should be 3");
+  heap.push(7);
+  assert(heap.top() == 3 && "Top should still be 3");
+  heap.push(1);
+  assert(heap.top() == 1 && "Top should be 1");
+  cout << "Push and top tests passed!" << endl;
+
+  // Test 2: Size and Empty
+  cout << "\nTest 2: Size and Empty" << endl;
+  assert(heap.size() == 4 && "Size should be 4");
+  assert(!heap.empty() && "Heap should not be empty");
+  cout << "Size and empty tests passed!" << endl;
+
+  // Test 3: Pop
+  cout << "\nTest 3: Pop" << endl;
+  assert(heap.pop() == 1 && "Should pop 1");
+  assert(heap.top() == 3 && "Top should now be 3");
+  assert(heap.pop() == 3 && "Should pop 3");
+  assert(heap.top() == 5 && "Top should now be 5");
+  assert(heap.size() == 2 && "Size should be 2");
+  cout << "Pop tests passed!" << endl;
+
+  // Test 4: Order Verification
+  cout << "\nTest 4: Order Verification" << endl;
+  BinaryHeap<int> ordered_heap;
+  vector<int> values = {9, 5, 2, 7, 1, 8, 3, 6, 4};
+  for (int val : values) {
+    ordered_heap.push(val);
+  }
+
+  vector<int> popped;
+  while (!ordered_heap.empty()) {
+    popped.push_back(ordered_heap.pop());
+  }
+
+  for (size_t i = 1; i < popped.size(); i++) {
+    assert(popped[i - 1] <= popped[i] &&
+           "Elements should be in ascending order");
+  }
+  cout << "Order verification test passed!" << endl;
+
+  // Test 5: Empty Heap Operations
+  cout << "\nTest 5: Empty Heap Operations" << endl;
+  BinaryHeap<int> empty_heap;
+  assert(empty_heap.empty() && "New heap should be empty");
+  assert(empty_heap.size() == 0 && "New heap should have size 0");
+  cout << "Empty heap tests passed!" << endl;
+}
+
 int main() {
   exercise_1();
   exercise_2();
   exercise_3();
   exercise_4();
 
-  run_benchmarks("paper/data/benchmark_results.csv");
+  test_bst();
+  test_binary_heap();
+
+  cout << "\n\nRunning benchmarks\n" << endl;
+
+  run_all_benchmarks();
 }

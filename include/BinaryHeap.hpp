@@ -1,86 +1,55 @@
 #pragma once
 
-#include <unordered_map>
 #include <vector>
 namespace complex {
 
-template <typename K, typename P> class BinaryHeap {
+template <typename T> class BinaryHeap {
+private:
+  std::vector<T> heap;
+
 public:
-  struct HeapNode {
-    K key;
-    P priority;
-
-    HeapNode(const K &k, const P &p) : key(k), priority(p) {}
-  };
-
-  std::vector<HeapNode> heap;
-  std::unordered_map<K, size_t> key_to_index;
-
-  void insert(const K &key, const P &priority) {
-    heap.emplace_back(key, priority);
-    size_t index = heap.size() - 1;
-    key_to_index[key] = index;
-
-    // Sift up
-    while (index > 0) {
-      size_t parent = (index - 1) / 2;
-      if (heap[parent].priority <= heap[index].priority)
+  void push(T value) {
+    heap.push_back(value);
+    size_t i = heap.size() - 1;
+    while (i > 0) {
+      size_t parent = (i - 1) / 2;
+      if (heap[parent] <= heap[i])
         break;
-
-      std::swap(heap[parent], heap[index]);
-      key_to_index[heap[parent].key] = parent;
-      key_to_index[heap[index].key] = index;
-      index = parent;
+      std::swap(heap[parent], heap[i]);
+      i = parent;
     }
   }
 
-  bool find(const K &key) const { return key_to_index.count(key) > 0; }
+  T pop() {
+    T result = heap[0];
+    heap[0] = heap.back();
+    heap.pop_back();
 
-  void remove(const K &key) {
-    auto it = key_to_index.find(key);
-    if (it == key_to_index.end())
-      return;
-
-    size_t index = it->second;
-    size_t last = heap.size() - 1;
-
-    // If not the last element, swap with last and sift
-    if (index != last) {
-      std::swap(heap[index], heap[last]);
-      key_to_index[heap[index].key] = index;
-      heap.pop_back();
-      key_to_index.erase(key);
-
-      if (heap.empty())
-        return;
-
-      // Sift down
+    if (!heap.empty()) {
+      size_t i = 0;
       while (true) {
-        size_t smallest = index;
-        size_t left = 2 * index + 1;
-        size_t right = 2 * index + 2;
+        size_t smallest = i;
+        size_t left = 2 * i + 1;
+        size_t right = 2 * i + 2;
 
-        if (left < heap.size() &&
-            heap[left].priority < heap[smallest].priority) {
+        if (left < heap.size() && heap[left] < heap[smallest])
           smallest = left;
-        }
-        if (right < heap.size() &&
-            heap[right].priority < heap[smallest].priority) {
+        if (right < heap.size() && heap[right] < heap[smallest])
           smallest = right;
-        }
 
-        if (smallest == index)
+        if (smallest == i)
           break;
 
-        std::swap(heap[index], heap[smallest]);
-        key_to_index[heap[index].key] = index;
-        key_to_index[heap[smallest].key] = smallest;
-        index = smallest;
+        std::swap(heap[i], heap[smallest]);
+        i = smallest;
       }
-    } else {
-      heap.pop_back();
-      key_to_index.erase(key);
     }
+    return result;
   }
+
+  bool empty() const { return heap.empty(); }
+  size_t size() const { return heap.size(); }
+  T top() const { return heap[0]; }
 };
+
 } // namespace complex

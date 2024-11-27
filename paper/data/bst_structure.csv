@@ -1,0 +1,16 @@
+n,pattern,height,avg_depth,balance_factor
+1000,random,21,11,0.4
+1000,ascending,29,17,0
+1000,descending,902,451,1
+5000,random,26,13,0.52
+5000,ascending,35,20,0
+5000,descending,4003,1807,0.888568
+10000,random,29,15,0.482143
+10000,ascending,39,23,0
+10000,descending,9003,4501,1
+50000,random,34,17,0.53125
+50000,ascending,45,27,0
+50000,descending,40004,18057,0.88884
+100000,random,38,20,0.506667
+100000,ascending,49,29,0
+100000,descending,90004,45001,1

@@ -1,0 +1,11 @@
+n,operation,time_us
+1000,push,14
+1000,pop,31
+5000,push,13
+5000,pop,35
+10000,push,19
+10000,pop,46
+50000,push,19
+50000,pop,56
+100000,push,13
+100000,pop,60

@@ -71,7 +71,9 @@ _Voir la fonction `exercice_1` pour la construction "manuelle" de l'arbre carté
 _Voir la fonction `CartesianTree::find` pour l'implémentation de la recherche d'un nœud et `exercice_2` pour un exemple de recherche minimal._
 
 === b
-Dans le cas d'une recherche fructueuse, soit $k$ la profondeur du nœud. On aura $1$ comparaison par échec (tant que l'on est pas encore au nœud) et $1$ comparaison pour valider que la clé est bien la bonne. On aura donc bien $k$ comparaisons, c'est à dire $k$ nœuds parcourus. Dans le cas d'une recherche infructueuse, on note $k_p$ et $k_s$ la profondeur de son prédecesseur et successeur respectivement. On devra alors aller jusqu'à $max{k_p, k_s}$.
+Dans le cas d'une recherche fructueuse, soit $k$ la profondeur du nœud. On aura une comparaison par échec (tant que l'on est pas encore au nœud) et une comparaison pour valider que la clé est bien la bonne. On aura donc bien $k$ comparaisons, c'est à dire $k$ nœuds parcourus. Dans le cas d'une recherche infructueuse, on note $k_p$ et $k_s$ la profondeur de son prédecesseur et successeur, au sens des clés, respectivement. 
+
+On devra alors aller jusqu'à $max{k_p, k_s}$. 
 
 == Exercice 3
 
