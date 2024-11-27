@@ -44,6 +44,11 @@ void exercice_2() {
 
   CartesianTree tree(&h1);
 
+  for (auto element : tree) {
+    cout << element << endl;
+  }
+  cout << endl;
+
   Node *res = tree.find("E");
   cout << res->key << res->priority << endl;
 }
@@ -126,4 +131,4 @@ void exercice_4() {
   }
 }
 
-int main() { exercice_4(); }
+int main() { exercice_2(); }

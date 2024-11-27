@@ -154,11 +154,10 @@ _#lorem(20)_
 
 == Exercice 5
 
-
 === a
 // on itere sur les n int a tester
 // on genere au hasard une liste de taille n vector<int>
-// on en deduit des cles <vector<pair<string, int>>
+// on en deduit des cles vector<pair<string, int>>
 // on randomise au hasard la liste
 // on benchmark:
 //

@@ -1,26 +1,30 @@
 #pragma once
 
 #include <iostream>
-#include <memory>
 #include <ostream>
 #include <stack>
 #include <string>
 
 namespace complex {
 
-template <typename T> class CartesianTree {
+template <typename K, typename P> class CartesianTree {
 public:
   struct Node {
 
   public:
-    std::string key;
-    T priority;
-    std::unique_ptr<Node> left;
-    std::unique_ptr<Node> right;
-    Node *parent;
+    K key;
+    P priority;
 
-    Node(const std::string &k, T p)
-        : key(k), priority(p), left(nullptr), right(nullptr), parent(nullptr) {}
+    Node *left;
+    Node *right;
+
+    Node(const K &k, P p, Node *left, Node *right)
+        : key(k), priority(p), left(left), right(right) {}
+
+    ~Node() {
+      delete left;
+      delete right;
+    }
 
     friend std::ostream &operator<<(std::ostream &os, const Node *node) {
       if (node) {
@@ -30,11 +34,9 @@ public:
     }
   };
 
-  // private:
-  std::unique_ptr<Node> root_;
+  Node *root_;
   size_t size_;
 
-  // public:
   class iterator {
   private:
     std::stack<Node *> stack_;
@@ -58,18 +60,15 @@ public:
         return *this;
       }
 
-      // Get current node and remove it from stack
       Node *current = stack_.top();
       stack_.pop();
 
-      // Push right child first (so it's processed last)
       if (current->right) {
-        stack_.push(current->right.get());
+        stack_.push(current->right);
       }
 
-      // Push left child second (so it's processed first)
       if (current->left) {
-        stack_.push(current->left.get());
+        stack_.push(current->left);
       }
 
       return *this;
@@ -92,26 +91,24 @@ public:
   };
 
   CartesianTree() : root_(nullptr), size_(0) {}
+  CartesianTree(Node *root) : root_(root), size_(0) {}
 
-  CartesianTree(const CartesianTree &);
-  CartesianTree &operator=(const CartesianTree &);
-  ~CartesianTree() = default;
+  ~CartesianTree() { delete root_; };
 
-  iterator begin() const { return iterator(root_.get()); }
-
+  iterator begin() const { return iterator(root_); }
   iterator end() const { return iterator(nullptr); }
 
   bool is_empty() const { return root_ == nullptr; }
   size_t size() const { return size_; }
 
   const Node *find(const std::string &key) const {
-    Node *current = root_.get();
+    Node *current = root_;
 
     while (current) {
       if (key < current->key) {
-        current = current->left.get();
+        current = current->left;
       } else if (key > current->key) {
-        current = current->right.get();
+        current = current->right;
       } else {
         return current;
       }
@@ -120,69 +117,112 @@ public:
     return nullptr;
   }
 
-  bool insert(std::string key, T priority) {
-    if (key.empty()) {
-      return false;
-    }
+  bool insert(K key, P priority) {
 
     if (is_empty()) {
-      root_ = std::make_unique<Node>(key, priority);
-      size_ = 1;
+      root_ = new Node(key, priority, nullptr, nullptr);
       return true;
     }
 
-    // find insert position
-    std::stack<Node *> path;
-    Node *current = root_.get();
-    Node *parent = nullptr;
-    while (current) {
-      if (key == current->key) {
-        return false; // duplicate key
-      }
-      path.push(current);
-      parent = current;
-      if (key < current->key) {
-        if (!current->left) {
-          break;
-        }
-        current = current->left.get();
-      } else {
-        if (!current->right) {
-          break;
-        }
-        current = current->right.get();
-      }
+    auto [parent, path] = find_insert_node(root_, key);
+    if (parent == nullptr) { // Key already exists
+      return false;
     }
 
-    auto new_node = std::make_unique<Node>(key, priority);
+    Node *new_node = new Node(key, priority, nullptr, nullptr);
 
-    new_node->parent = parent;
-    if (key < parent->key) {
-      parent->left = std::move(new_node);
-    } else {
-      parent->right = std::move(new_node);
-    }
-    size_++;
-
-    // restore the heap property
-    path.push(new_node.get());
-    while (!path.empty()) {
-      Node *child = path.top();
-      path.pop();
-
-      Node *parent = child->parent;
-      std::cout << "Child:" << child << std::endl;
-      std::cout << "Parent:" << parent << std::endl;
-
-      if (parent->priority <= child->priority) {
-        break;
-      }
-    }
+    insert_node(parent, new_node, key);
+    path.push(new_node);
+    restore_heap(root_, path);
 
     return true;
   }
 
-  bool remove(const std::string &key);
+  bool remove(const std::string &key) {
+    if (is_empty()) {
+      return false;
+    }
+
+    // Find the node to remove and track the path to it
+    Node *current = root_;
+    Node *parent = nullptr;
+    bool is_left_child = false;
+
+    while (current && current->key != key) {
+      parent = current;
+      if (key < current->key) {
+        current = current->left;
+        is_left_child = true;
+      } else {
+        current = current->right;
+        is_left_child = false;
+      }
+    }
+
+    // If key not found
+    if (!current) {
+      return false;
+    }
+
+    // Rotate the node down until it becomes a leaf
+    while (current->left || current->right) {
+      // If only right child exists or right child has lower priority
+      if (!current->left || (current->right && current->right->priority <
+                                                   current->left->priority)) {
+        if (parent) {
+          if (is_left_child) {
+            parent->left = current->right;
+          } else {
+            parent->right = current->right;
+          }
+        } else {
+          root_ = current->right;
+        }
+        Node *right = current->right;
+        current->right = right->left;
+        right->left = current;
+        parent = right;
+        is_left_child = true;
+      }
+      // If only left child exists or left child has lower priority
+      else {
+        if (parent) {
+          if (is_left_child) {
+            parent->left = current->left;
+          } else {
+            parent->right = current->left;
+          }
+        } else {
+          root_ = current->left;
+        }
+        Node *left = current->left;
+        current->left = left->right;
+        left->right = current;
+        parent = left;
+        is_left_child = false;
+      }
+    }
+
+    // Now current is a leaf node, we can delete it
+    if (parent) {
+      if (is_left_child) {
+        parent->left = nullptr;
+      } else {
+        parent->right = nullptr;
+      }
+    } else {
+      root_ = nullptr;
+    }
+
+    // Important: null out pointers before deletion to prevent recursive
+    // deletion
+    current->left = nullptr;
+    current->right = nullptr;
+    delete current;
+    size_--;
+
+    return true;
+  }
 
   friend std::ostream &operator<<(std::ostream &os, const CartesianTree &tree) {
     for (const auto &node : tree) {
@@ -192,14 +232,85 @@ public:
   }
 
 private:
-  std::unique_ptr<Node> remove_root(std::unique_ptr<Node> root);
-  void move_node_to_leaf(Node *node);
-  bool remove_leaf(Node *node);
+  std::pair<Node *, std::stack<Node *>>
+  find_insert_node(Node *root, const std::string &key) {
+    std::stack<Node *> path;
+    Node *current = root;
+    Node *parent = nullptr;
 
-  std::unique_ptr<Node> clone_subtree(const Node *node);
+    while (current != nullptr) {
+      if (key == current->key) {
+        return {nullptr, path}; // Key already exists
+      }
+      path.push(current);
+      parent = current;
+      if (key < current->key) {
+        current = current->left;
+      } else {
+        current = current->right;
+      }
+    }
+    return {parent, path};
+  }
 
-  bool is_valid_bst() const;
-  bool is_valid_heap() const;
+  void insert_node(Node *parent, Node *new_node, const std::string &key) {
+    if (parent == nullptr) {
+      return;
+    }
+    if (key < parent->key) {
+      parent->left = new_node;
+    } else {
+      parent->right = new_node;
+    }
+  }
+
+  void rotate_right(Node *&root, Node *parent, Node *child) {
+    parent->left = child->right;
+    child->right = parent;
+    if (parent == root) {
+      root = child;
+    }
+  }
+
+  void rotate_left(Node *&root, Node *parent, Node *child) {
+    parent->right = child->left;
+    child->left = parent;
+    if (parent == root) {
+      root = child;
+    }
+  }
+
+  void restore_heap(Node *&root, std::stack<Node *> &path) {
+    while (path.size() >= 2) {
+      Node *child = path.top();
+      path.pop();
+      Node *parent = path.top();
+      path.pop();
+
+      if (parent->priority <= child->priority) {
+        path.push(parent);
+        path.push(child);
+        break;
+      }
+
+      if (parent->left == child) {
+        rotate_right(root, parent, child);
+      } else {
+        rotate_left(root, parent, child);
+      }
+
+      if (!path.empty()) {
+        Node *grandparent = path.top();
+        if (grandparent->left == parent) {
+          grandparent->left = child;
+        } else {
+          grandparent->right = child;
+        }
+      }
+
+      path.push(child);
+    }
+  }
 };
 
 } // namespace complex

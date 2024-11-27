@@ -1,0 +1,173 @@
+# Méthodologie d'analyse expérimentale des arbres cartésiens aléatoires
+
+## 1. Objectifs de l'étude
+
+Cette étude vise à évaluer empiriquement les performances des arbres cartésiens aléatoires en les comparant à d'autres structures de données classiques, avec un focus particulier sur :
+
+a) L'équilibre structurel de l'arbre
+b) L'efficacité des opérations fondamentales
+c) La résistance aux cas pathologiques
+d) L'impact des collisions de priorités
+
+## 2. Structures de données comparées
+
+1. Arbre cartésien aléatoire (notre implémentation)
+2. std::vector (référence pour les petites tailles)
+3. std::map (arbre rouge-noir)
+4. Arbre binaire de recherche classique
+5. Arbre binaire de recherche intentionnellement déséquilibré
+6. std::priority_queue (tas binaire)
+7. std::unordered_map (table de hachage)
+
+## 3. Métriques d'évaluation
+
+### 3.1 Métriques structurelles
+- Profondeur maximale
+- Profondeur moyenne des feuilles
+- Facteur d'équilibre (ratio entre la plus courte et la plus longue branche)
+- Distribution des profondeurs des nœuds
+
+### 3.2 Métriques de performance
+- Temps d'insertion
+- Temps de recherche (éléments présents)
+- Temps de recherche (éléments absents)
+- Temps de suppression
+- Temps de parcours complet
+- Utilisation mémoire
+
+## 4. Protocole expérimental
+
+### 4.1 Paramètres variables
+- Taille des données (n): {10^3, 10^4, 10^5, 10^6, 10^7}
+- Taux de collision des priorités (α): {0%, 0.1%, 1%, 10%}
+- Distribution des clés: {aléatoire, triée, inversée, répétitive}
+
+### 4.2 Configuration du benchmark
+
+```cpp
+struct BenchmarkResult {
+    // Métriques structurelles
+    size_t max_depth;
+    double avg_leaf_depth;
+    double balance_factor;
+    vector<size_t> depth_distribution;
+    
+    // Métriques de performance
+    chrono::nanoseconds insert_time;
+    chrono::nanoseconds find_time_present;
+    chrono::nanoseconds find_time_absent;
+    chrono::nanoseconds remove_time;
+    chrono::nanoseconds traversal_time;
+    size_t memory_usage;
+};
+```
+
+### 4.3 Format du fichier CSV de résultats
+
+```
+structure_type,n,alpha,key_distribution,operation,metric_type,value,unit
+cartesian_tree,1000000,0,random,insert,time,123.45,ms
+cartesian_tree,1000000,0,random,max_depth,structural,15,levels
+```
+
+Colonnes:
+- structure_type: Type de structure de données testée
+- n: Taille du jeu de données
+- alpha: Taux de collision des priorités
+- key_distribution: Distribution des clés
+- operation: Opération mesurée
+- metric_type: Type de métrique (time/structural)
+- value: Valeur mesurée
+- unit: Unité de mesure
+
+## 5. Cas de test spécifiques
+
+### 5.1 Test de résistance au déséquilibre
+1. Générer une séquence d'insertion qui déséquilibre un BST:
+   - Séquence triée croissante
+   - Séquence en forme de peigne
+   - Pattern alterné (min, max, min+1, max-1, ...)
+
+2. Appliquer cette séquence aux différentes structures et comparer:
+   - La profondeur résultante
+   - Les temps d'accès moyens
+   - La dégradation des performances
+
+### 5.2 Test de collision des priorités
+1. Générer des priorités avec différents taux de collision:
+   ```cpp
+   double generatePriority(double alpha) {
+       if (rand() < alpha * RAND_MAX) {
+           return round(rand() % 10) / 10.0;  // Priorités discrètes
+       }
+       return (double)rand() / RAND_MAX;      // Priorités continues
+   }
+   ```
+
+2. Analyser l'impact sur:
+   - La forme de l'arbre
+   - Les temps d'opération
+   - La stabilité des performances
+
+## 6. Procédure de test
+
+1. Initialisation:
+   - Définir une graine aléatoire fixe pour la reproductibilité
+   - Préchauffer le CPU avec des runs à vide
+   - Désactiver les optimisations du processeur qui pourraient biaiser les mesures
+
+2. Pour chaque combinaison de paramètres:
+   - Répéter les mesures 10 fois
+   - Éliminer les valeurs aberrantes
+   - Calculer moyenne et écart-type
+   - Enregistrer les résultats dans le CSV
+
+3. Mesures de performance:
+   ```cpp
+   auto start = high_resolution_clock::now();
+   // Opération à mesurer
+   auto end = high_resolution_clock::now();
+   auto duration = duration_cast<nanoseconds>(end - start);
+   ```
+
+4. Mesures structurelles:
+   ```cpp
+   template<typename Tree>
+   BenchmarkResult analyzeStructure(const Tree& tree) {
+       BenchmarkResult result;
+       result.max_depth = computeMaxDepth(tree);
+       result.avg_leaf_depth = computeAvgLeafDepth(tree);
+       result.balance_factor = computeBalanceFactor(tree);
+       result.depth_distribution = computeDepthDistribution(tree);
+       return result;
+   }
+   ```
+
+## 7. Visualisation et analyse des résultats
+
+1. Graphiques à générer:
+   - Courbes de scalabilité (temps vs n)
+   - Histogrammes de distribution des profondeurs
+   - Box plots des temps d'opération
+   - Graphiques d'impact des collisions
+
+2. Analyses statistiques:
+   - Tests de normalité
+   - Intervalles de confiance
+   - Tests de significativité des différences observées
+
+## 8. Points d'attention particuliers
+
+1. Biais potentiels:
+   - Effets de cache
+   - Garbage collection
+   - Interruptions système
+   - Optimisations du compilateur
+
+2. Reproductibilité:
+   - Documentation des conditions matérielles
+   - Versions des compilateurs et flags
+   - Scripts de génération des données
+   - Code source des benchmarks
+
+Cette méthodologie permet une évaluation rigoureuse et complète des arbres cartésiens aléatoires, avec un focus particulier sur les aspects qui les distinguent des autres structures de données d'arbres binaires de recherche.
