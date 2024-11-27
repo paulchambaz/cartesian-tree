@@ -4,18 +4,20 @@
 
 namespace complex {
 
-#define NUM_RUNS 1
+#define NUM_RUNS 50
 
 struct CartesianMetrics {
   size_t height;
   size_t avg_depth;
-  double balance_factor;
+  double balance_height_factor;
+  double balance_size_factor;
 };
 
 struct BSTMetrics {
   size_t height;
   size_t avg_depth;
-  double balance_factor;
+  double balance_height_factor;
+  double balance_size_factor;
 };
 
 struct OperationMetrics {

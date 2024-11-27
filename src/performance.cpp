@@ -11,7 +11,8 @@
 namespace complex {
 
 std::vector<std::pair<std::string, int>>
-generate_cartesian_data(size_t n, double collision_rate) {
+generate_cartesian_data(size_t n, double collision_rate,
+                        const std::string &pattern) {
   std::cout << "Generating Cartesian data with n=" << n
             << ", collision_rate=" << collision_rate << std::endl;
 
@@ -44,7 +45,12 @@ generate_cartesian_data(size_t n, double collision_rate) {
     data.emplace_back(key, priority);
   }
 
-  std::shuffle(data.begin(), data.end(), gen);
+  if (pattern == "random") {
+    std::shuffle(data.begin(), data.end(), gen);
+  } else if (pattern == "descending") {
+    std::reverse(data.begin(), data.end());
+  }
+
   std::cout << "Generated " << data.size() << " data points" << std::endl;
   return data;
 }
@@ -109,7 +115,7 @@ std::vector<int> generate_heap_data(size_t n) {
 
 template <typename K, typename P>
 CartesianMetrics compute_cartesian_metrics(const CartesianTree<K, P> &tree) {
-  CartesianMetrics metrics{0, 0, 0.0};
+  CartesianMetrics metrics{0, 0, 0.0, 0.0};
   if (!tree.root_) {
     return metrics;
   }
@@ -117,7 +123,6 @@ CartesianMetrics compute_cartesian_metrics(const CartesianTree<K, P> &tree) {
   size_t total_depth = 0;
   size_t node_count = 0;
 
-  // Calculate height using the same approach as BST metrics
   std::function<size_t(typename CartesianTree<K, P>::Node *)> calculate_height =
       [&](typename CartesianTree<K, P>::Node *node) -> size_t {
     if (!node)
@@ -126,7 +131,13 @@ CartesianMetrics compute_cartesian_metrics(const CartesianTree<K, P> &tree) {
                         calculate_height(node->right));
   };
 
-  // Calculate depths using the same approach as BST metrics
+  std::function<size_t(typename CartesianTree<K, P>::Node *)> calculate_size =
+      [&](typename CartesianTree<K, P>::Node *node) -> size_t {
+    if (!node)
+      return 0;
+    return 1 + calculate_height(node->left) + calculate_height(node->right);
+  };
+
   std::function<void(typename CartesianTree<K, P>::Node *, size_t)>
       calculate_depths =
           [&](typename CartesianTree<K, P>::Node *node, size_t depth) {
@@ -138,9 +149,8 @@ CartesianMetrics compute_cartesian_metrics(const CartesianTree<K, P> &tree) {
             calculate_depths(node->right, depth + 1);
           };
 
-  // Calculate balance using the same approach as BST metrics
   std::function<double(typename CartesianTree<K, P>::Node *)>
-      calculate_balance =
+      calculate_balance_height =
           [&](typename CartesianTree<K, P>::Node *node) -> double {
     if (!node)
       return 0.0;
@@ -149,18 +159,28 @@ CartesianMetrics compute_cartesian_metrics(const CartesianTree<K, P> &tree) {
     return left_height / (left_height + right_height);
   };
 
-  // Calculate metrics using the same order and approach as BST metrics
+  std::function<double(typename CartesianTree<K, P>::Node *)>
+      calculate_balance_size =
+          [&](typename CartesianTree<K, P>::Node *node) -> double {
+    if (!node)
+      return 0.0;
+    double left_size = static_cast<double>(calculate_size(node->left));
+    double right_size = static_cast<double>(calculate_size(node->right));
+    return left_size / (left_size + right_size);
+  };
+
   metrics.height = calculate_height(tree.root_) - 1;
   calculate_depths(tree.root_, 0);
   metrics.avg_depth = total_depth / node_count;
-  metrics.balance_factor = calculate_balance(tree.root_);
+  metrics.balance_height_factor = calculate_balance_height(tree.root_);
+  metrics.balance_size_factor = calculate_balance_size(tree.root_);
 
   return metrics;
 }
 
 template <typename K>
 BSTMetrics compute_bst_metrics(const BinarySearchTree<K> &tree) {
-  BSTMetrics metrics{0, 0, 0.0};
+  BSTMetrics metrics{0, 0, 0.0, 0.0};
   if (!tree.root_) {
     return metrics;
   }
@@ -174,6 +194,13 @@ BSTMetrics compute_bst_metrics(const BinarySearchTree<K> &tree) {
       return 0;
     return 1 + std::max(calculate_height(node->left),
                         calculate_height(node->right));
+  };
+
+  std::function<size_t(typename BinarySearchTree<K>::Node *)> calculate_size =
+      [&](typename BinarySearchTree<K>::Node *node) -> size_t {
+    if (!node)
+      return 0;
+    return 1 + calculate_height(node->left) + calculate_height(node->right);
   };
 
   std::function<void(typename BinarySearchTree<K>::Node *, size_t)>
@@ -190,7 +217,7 @@ BSTMetrics compute_bst_metrics(const BinarySearchTree<K> &tree) {
           };
 
   std::function<double(typename BinarySearchTree<K>::Node *)>
-      calculate_balance =
+      calculate_balance_height =
           [&](typename BinarySearchTree<K>::Node *node) -> double {
     if (!node)
       return 0.0;
@@ -201,10 +228,23 @@ BSTMetrics compute_bst_metrics(const BinarySearchTree<K> &tree) {
     return left_height / (left_height + right_height);
   };
 
+  std::function<double(typename BinarySearchTree<K>::Node *)>
+      calculate_balance_size =
+          [&](typename BinarySearchTree<K>::Node *node) -> double {
+    if (!node)
+      return 0.0;
+
+    double left_size = static_cast<double>(calculate_size(node->left));
+    double right_size = static_cast<double>(calculate_size(node->right));
+
+    return left_size / (left_size + right_size);
+  };
+
   metrics.height = calculate_height(tree.root_) - 1;
   calculate_depths(tree.root_, 0);
   metrics.avg_depth = total_depth / node_count;
-  metrics.balance_factor = calculate_balance(tree.root_);
+  metrics.balance_height_factor = calculate_balance_height(tree.root_);
+  metrics.balance_size_factor = calculate_balance_size(tree.root_);
 
   return metrics;
 }
@@ -214,63 +254,83 @@ void benchmark_cartesian_tree(const std::string &operation_file,
   std::cout << "\n=== Starting Cartesian Tree Benchmarks ===" << std::endl;
   std::cout << "Writing to files: " << operation_file << " and "
             << structure_file << std::endl;
+
   std::ofstream op_out(operation_file);
   std::ofstream struct_out(structure_file);
-  op_out << "n,collision_rate,operation,time_us\n";
-  struct_out << "n,collision_rate,height,avg_depth,balance_factor\n";
-  std::vector<size_t> sizes = {1000, 5000, 10000, 50000, 100000};
+
+  op_out << "n,collision_rate,pattern,operation,time_us\n";
+  struct_out
+      << "n,collision_rate,pattern,height,avg_depth,balance_height_factor,"
+         "balance_size_factor\n";
+
+  std::vector<std::string> patterns = {"random", "ascending", "descending"};
   std::vector<double> collision_rates = {0.0, 0.01, 0.1};
-  for (size_t n : sizes) {
+
+  for (size_t n = 100000; n <= 1000000; n += 50000) {
     std::cout << "\nTesting size n=" << n << std::endl;
-    for (double rate : collision_rates) {
-      std::cout << "Testing collision rate=" << rate << std::endl;
-      auto data = generate_cartesian_data(n, rate);
-      auto nonexistent_keys = generate_nonexistent_keys(n);
 
-      std::cout << "Building Cartesian tree..." << std::endl;
-      auto start = Instant::now();
-      CartesianTree<std::string, int> tree;
-      for (const auto &[key, priority] : data) {
-        tree.insert(key, priority);
+    for (const auto &pattern : patterns) {
+      std::cout << "Testing pattern=" << pattern << std::endl;
+
+      for (double rate : collision_rates) {
+        std::cout << "Testing collision rate=" << rate << std::endl;
+
+        for (int k = 0; k < NUM_RUNS; k++) {
+
+          auto data = generate_cartesian_data(n, rate, pattern);
+          auto nonexistent_keys = generate_nonexistent_keys(n);
+
+          std::cout << "Building Cartesian tree..." << std::endl;
+          auto start = Instant::now();
+          CartesianTree<std::string, int> tree;
+          for (const auto &[key, priority] : data) {
+            tree.insert(key, priority);
+          }
+          long insert_time = start.elapsed() / static_cast<long>(n);
+          std::cout << "Average insert time: " << insert_time << "us"
+                    << std::endl;
+
+          auto metrics = compute_cartesian_metrics(tree);
+
+          start = Instant::now();
+          for (const auto &[key, _] : data) {
+            tree.find(key);
+          }
+          long search_time = start.elapsed() / static_cast<long>(n);
+          std::cout << "Average search time: " << search_time << "us"
+                    << std::endl;
+
+          start = Instant::now();
+          for (const auto &key : nonexistent_keys) {
+            tree.find(key);
+          }
+          long failed_search_time = start.elapsed() / static_cast<long>(n);
+          std::cout << "Average failed search time: " << failed_search_time
+                    << "us" << std::endl;
+
+          start = Instant::now();
+          for (const auto &[key, _] : data) {
+            tree.remove(key);
+          }
+          long remove_time = start.elapsed() / static_cast<long>(n);
+          std::cout << "Average remove time: " << remove_time << "us"
+                    << std::endl;
+
+          op_out << n << "," << rate << "," << pattern << ",insert,"
+                 << insert_time << "\n"
+                 << n << "," << rate << "," << pattern << ",search,"
+                 << search_time << "\n"
+                 << n << "," << rate << "," << pattern << ",failed_search,"
+                 << failed_search_time << "\n"
+                 << n << "," << rate << "," << pattern << ",remove,"
+                 << remove_time << "\n";
+
+          struct_out << n << "," << rate << "," << pattern << ","
+                     << metrics.height << "," << metrics.avg_depth << ","
+                     << metrics.balance_height_factor << ","
+                     << metrics.balance_size_factor << "\n";
+        }
       }
-      long insert_time = start.elapsed() / static_cast<long>(n);
-      std::cout << "Average insert time: " << insert_time << "us" << std::endl;
-
-      auto metrics = compute_cartesian_metrics(tree);
-
-      // Measure search time for existing keys
-      start = Instant::now();
-      for (const auto &[key, _] : data) {
-        tree.find(key);
-      }
-      long search_time = start.elapsed() / static_cast<long>(n);
-      std::cout << "Average search time: " << search_time << "us" << std::endl;
-
-      // Measure search time for non-existent keys
-      start = Instant::now();
-      for (const auto &key : nonexistent_keys) {
-        tree.find(key);
-      }
-      long failed_search_time = start.elapsed() / static_cast<long>(n);
-      std::cout << "Average failed search time: " << failed_search_time << "us"
-                << std::endl;
-
-      // Measure remove time
-      start = Instant::now();
-      for (const auto &[key, _] : data) {
-        tree.remove(key);
-      }
-      long remove_time = start.elapsed() / static_cast<long>(n);
-      std::cout << "Average remove time: " << remove_time << "us" << std::endl;
-
-      op_out << n << "," << rate << ",insert," << insert_time << "\n"
-             << n << "," << rate << ",search," << search_time << "\n"
-             << n << "," << rate << ",failed_search," << failed_search_time
-             << "\n"
-             << n << "," << rate << ",remove," << remove_time << "\n";
-
-      struct_out << n << "," << rate << "," << metrics.height << ","
-                 << metrics.avg_depth << "," << metrics.balance_factor << "\n";
     }
   }
   std::cout << "Cartesian tree benchmarks completed" << std::endl;
@@ -286,62 +346,69 @@ void benchmark_bst(const std::string &operation_file,
   std::ofstream struct_out(structure_file);
 
   op_out << "n,pattern,operation,time_us\n";
-  struct_out << "n,pattern,height,avg_depth,balance_factor\n";
+  struct_out << "n,pattern,height,avg_depth,balance_height_factor,balance_size_"
+                "factor\n";
 
-  std::vector<size_t> sizes = {1000, 5000, 10000, 50000, 100000};
   std::vector<std::string> patterns = {"random", "ascending", "descending"};
 
-  for (size_t n : sizes) {
+  for (size_t n = 10000; n <= 50000; n += 5000) {
     std::cout << "\nTesting size n=" << n << std::endl;
 
     for (const auto &pattern : patterns) {
       std::cout << "Testing pattern=" << pattern << std::endl;
 
-      auto data = generate_bst_data(n, pattern);
-      auto nonexistent_keys = generate_nonexistent_keys(n);
+      for (int k = 0; k < NUM_RUNS; k++) {
 
-      std::cout << "Building BST..." << std::endl;
+        auto data = generate_bst_data(n, pattern);
+        auto nonexistent_keys = generate_nonexistent_keys(n);
 
-      auto start = Instant::now();
-      BinarySearchTree<std::string> tree;
-      for (const auto &key : data) {
-        tree.insert(key);
+        std::cout << "Building BST..." << std::endl;
+
+        auto start = Instant::now();
+        BinarySearchTree<std::string> tree;
+        for (const auto &key : data) {
+          tree.insert(key);
+        }
+        long insert_time = start.elapsed() / static_cast<long>(n);
+        std::cout << "Average insert time: " << insert_time << "us"
+                  << std::endl;
+
+        auto metrics = compute_bst_metrics(tree);
+
+        start = Instant::now();
+        for (const auto &key : data) {
+          tree.find(key);
+        }
+        long search_time = start.elapsed() / static_cast<long>(n);
+        std::cout << "Average search time: " << search_time << "us"
+                  << std::endl;
+
+        start = Instant::now();
+        for (const auto &key : nonexistent_keys) {
+          tree.find(key);
+        }
+        long failed_search_time = start.elapsed() / static_cast<long>(n);
+        std::cout << "Average failed search time: " << failed_search_time
+                  << "us" << std::endl;
+
+        start = Instant::now();
+        for (const auto &key : data) {
+          tree.remove(key);
+        }
+        long remove_time = start.elapsed() / static_cast<long>(n);
+        std::cout << "Average remove time: " << remove_time << "us"
+                  << std::endl;
+
+        op_out << n << "," << pattern << ",insert," << insert_time << "\n"
+               << n << "," << pattern << ",search," << search_time << "\n"
+               << n << "," << pattern << ",failed_search," << failed_search_time
+               << "\n"
+               << n << "," << pattern << ",remove," << remove_time << "\n";
+
+        struct_out << n << "," << pattern << "," << metrics.height << ","
+                   << metrics.avg_depth << "," << metrics.balance_height_factor
+                   << "," << metrics.balance_size_factor << "\n";
       }
-      long insert_time = start.elapsed() / static_cast<long>(n);
-      std::cout << "Average insert time: " << insert_time << "us" << std::endl;
-
-      auto metrics = compute_bst_metrics(tree);
-
-      start = Instant::now();
-      for (const auto &key : data) {
-        tree.find(key);
-      }
-      long search_time = start.elapsed() / static_cast<long>(n);
-      std::cout << "Average search time: " << search_time << "us" << std::endl;
-
-      start = Instant::now();
-      for (const auto &key : nonexistent_keys) {
-        tree.find(key);
-      }
-      long failed_search_time = start.elapsed() / static_cast<long>(n);
-      std::cout << "Average failed search time: " << failed_search_time << "us"
-                << std::endl;
-
-      start = Instant::now();
-      for (const auto &key : data) {
-        tree.remove(key);
-      }
-      long remove_time = start.elapsed() / static_cast<long>(n);
-      std::cout << "Average remove time: " << remove_time << "us" << std::endl;
-
-      op_out << n << "," << pattern << ",insert," << insert_time << "\n"
-             << n << "," << pattern << ",search," << search_time << "\n"
-             << n << "," << pattern << ",failed_search," << failed_search_time
-             << "\n"
-             << n << "," << pattern << ",remove," << remove_time << "\n";
-
-      struct_out << n << "," << pattern << "," << metrics.height << ","
-                 << metrics.avg_depth << "," << metrics.balance_factor << "\n";
     }
   }
 
@@ -355,32 +422,33 @@ void benchmark_heap(const std::string &operation_file) {
   std::ofstream op_out(operation_file);
   op_out << "n,operation,time_us\n";
 
-  std::vector<size_t> sizes = {1000, 5000, 10000, 50000, 100000};
-
-  for (size_t n : sizes) {
+  for (size_t n = 100000; n <= 1000000; n += 50000) {
     std::cout << "\nTesting size n=" << n << std::endl;
 
-    auto data = generate_heap_data(n);
+    for (int k = 0; k < NUM_RUNS; k++) {
 
-    std::cout << "Building heap..." << std::endl;
-    auto start = Instant::now();
-    BinaryHeap<int> heap;
-    for (int value : data) {
-      heap.push(value);
+      auto data = generate_heap_data(n);
+
+      std::cout << "Building heap..." << std::endl;
+      auto start = Instant::now();
+      BinaryHeap<int> heap;
+      for (int value : data) {
+        heap.push(value);
+      }
+      long push_time = start.elapsed() / static_cast<long>(n);
+      std::cout << "Average push time: " << push_time << "us" << std::endl;
+
+      std::cout << "Performing pop operations..." << std::endl;
+      start = Instant::now();
+      while (!heap.empty()) {
+        heap.pop();
+      }
+      long pop_time = start.elapsed() / static_cast<long>(n);
+      std::cout << "Average pop time: " << pop_time << "us" << std::endl;
+
+      op_out << n << ",push," << push_time << "\n"
+             << n << ",pop," << pop_time << "\n";
     }
-    long push_time = start.elapsed() / static_cast<long>(n);
-    std::cout << "Average push time: " << push_time << "us" << std::endl;
-
-    std::cout << "Performing pop operations..." << std::endl;
-    start = Instant::now();
-    while (!heap.empty()) {
-      heap.pop();
-    }
-    long pop_time = start.elapsed() / static_cast<long>(n);
-    std::cout << "Average pop time: " << pop_time << "us" << std::endl;
-
-    op_out << n << ",push," << push_time << "\n"
-           << n << ",pop," << pop_time << "\n";
   }
 
   std::cout << "Heap benchmarks completed" << std::endl;
