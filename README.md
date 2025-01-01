@@ -41,7 +41,7 @@ The implementation includes:
 
 ## Authors
 
-- Damien Assire
+- [Damien Assire](https://www.linkedin.com/in/damien-assire-631642295/)
 - [Paul Chambaz](https://www.linkedin.com/in/paul-chambaz-17235a158/)
 
 ## License
