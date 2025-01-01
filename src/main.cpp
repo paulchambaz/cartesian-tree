@@ -401,5 +401,5 @@ int main() {
 
   cout << "\n\nRunning benchmarks\n" << endl;
 
-  run_all_benchmarks();
+  // run_all_benchmarks();
 }
